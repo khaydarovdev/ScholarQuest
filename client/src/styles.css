@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-bg: 6 14 28;
+  --color-panel: 10 20 38;
+  --color-panel-2: 18 30 55;
+  --color-text: 236 242 255;
+  --color-muted: 150 167 201;
+  --color-accent: 126 166 255;
+  --color-accent-2: 131 244 218;
+  --color-accent-3: 255 196 112;
+  --color-line: 255 255 255;
+}
+
+html.theme-light {
+  color-scheme: light;
+  --color-bg: 246 248 252;
+  --color-panel: 255 255 255;
+  --color-panel-2: 238 244 255;
+  --color-text: 14 27 48;
+  --color-muted: 86 104 134;
+  --color-accent: 79 98 255;
+  --color-accent-2: 0 151 167;
+  --color-accent-3: 208 112 36;
+  --color-line: 15 23 42;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-bg text-text antialiased;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(126, 166, 255, 0.22), transparent 24%),
+    radial-gradient(circle at 88% 0%, rgba(131, 244, 218, 0.14), transparent 22%),
+    radial-gradient(circle at 78% 82%, rgba(255, 196, 112, 0.09), transparent 19%),
+    linear-gradient(180deg, rgb(var(--color-bg)) 0%, rgb(var(--color-bg)) 100%);
+}
+
+html.theme-light body {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(79, 98, 255, 0.10), transparent 24%),
+    radial-gradient(circle at 88% 0%, rgba(0, 151, 167, 0.09), transparent 22%),
+    radial-gradient(circle at 78% 82%, rgba(208, 112, 36, 0.08), transparent 19%),
+    linear-gradient(180deg, rgb(var(--color-bg)) 0%, rgb(var(--color-bg)) 100%);
+}
+
+::selection {
+  background: rgba(121, 160, 255, 0.32);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.container-xy {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.glass {
+  @apply border border-white/[0.10] bg-white/[0.06] backdrop-blur-2xl;
+  box-shadow: 0 24px 80px rgba(4, 10, 22, 0.22);
+}
+
+html.theme-light .glass {
+  @apply border-black/10 bg-white/[0.78];
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+}
+
+.surface {
+  @apply border border-white/[0.08] bg-white/[0.03];
+}
+
+html.theme-light .surface {
+  @apply border-black/10 bg-white/80;
+}
+
+.card-hover {
+  transition:
+    transform 360ms cubic-bezier(.2,.8,.2,1),
+    border-color 320ms ease,
+    box-shadow 320ms ease,
+    background-color 320ms ease,
+    filter 320ms ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-6px) rotateX(1.5deg);
+  border-color: rgba(121, 160, 255, 0.35);
+  box-shadow: 0 28px 60px rgba(6, 12, 24, 0.34);
+}
+
+.soft-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.soft-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.14);
+  border-radius: 999px;
+}
+
+.soft-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.04);
+}
+
+html.theme-light .soft-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.16);
+}
+
+html.theme-light .soft-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+html.theme-light .bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(15,23,42,0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15,23,42,0.045) 1px, transparent 1px);
+}
+
+.shadow-glow {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05),
+    0 36px 120px rgba(46, 84, 164, 0.18);
+}
+
+html.theme-light .shadow-glow {
+  box-shadow:
+    0 0 0 1px rgba(15,23,42,0.06),
+    0 36px 120px rgba(79, 98, 255, 0.10);
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -8px, 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.animate-floaty {
+  animation: floaty 7s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% 200%;
+  animation: shimmer 9s linear infinite;
+}
+
+html.theme-light .text-white {
+  color: rgb(var(--color-text)) !important;
+}
+
+html.theme-light .text-white\/90,
+html.theme-light .text-white\/80,
+html.theme-light .text-white\/70,
+html.theme-light .text-white\/60,
+html.theme-light .text-white\/50,
+html.theme-light .text-white\/40,
+html.theme-light .text-white\/30 {
+  color: rgb(var(--color-text)) !important;
+}
+
+html.theme-light .bg-black\/20,
+html.theme-light .bg-black\/30,
+html.theme-light .bg-black\/35,
+html.theme-light .bg-black\/40,
+html.theme-light .bg-black\/50 {
+  background-color: rgba(255,255,255,0.6) !important;
+}
+
+html.theme-light .border-white\/10,
+html.theme-light .border-white\/20,
+html.theme-light .border-white\/25 {
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+html.theme-light .bg-white\/5,
+html.theme-light .bg-white\/10,
+html.theme-light .bg-white\/20,
+html.theme-light .bg-white\/30,
+html.theme-light .bg-white\/40 {
+  background-color: rgba(255,255,255,0.78) !important;
+}
+
+html.theme-light .text-muted {
+  color: rgb(var(--color-muted)) !important;
+}
+
+html.theme-light .text-text {
+  color: rgb(var(--color-text)) !important;
+}
