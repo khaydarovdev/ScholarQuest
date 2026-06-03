@@ -79,6 +79,7 @@ import SectionLabel from '@/components/SectionLabel.vue';
 import InputField from '@/components/forms/InputField.vue';
 import Chip from '@/components/Chip.vue';
 import { useAuthStore } from '@/stores/auth';
+import { parseInterests, formatInterests } from '@/utils/interests';
 
 useReveal();
 const auth = useAuthStore();
@@ -98,10 +99,7 @@ const matches = ref<any[]>([]);
 async function runMatch() {
   loading.value = true;
   try {
-    const interests = interestsInput.value
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
+    const interests = parseInterests(interestsInput.value);
 
     if (saveProfile.value && auth.user) {
       await auth.updateProfile({
@@ -141,7 +139,7 @@ onMounted(() => {
     profile.nationality = auth.user.nationality ?? profile.nationality;
     profile.degreeLevel = auth.user.degreeLevel ?? profile.degreeLevel;
     profile.targetCountry = auth.user.targetCountry ?? profile.targetCountry;
-    interestsInput.value = Array.isArray(auth.user.interests) ? auth.user.interests.join(', ') : interestsInput.value;
+    interestsInput.value = formatInterests(auth.user.interests) || interestsInput.value;
   }
   void runMatch();
 });

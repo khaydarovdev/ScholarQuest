@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { asyncHandler, HttpError } from '../utils/http.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { insensitiveContains, textSearch } from '../utils/query.js';
+import { requireScholarshipExists } from '../utils/schema.js';
 
 const router = Router();
 
@@ -50,19 +52,13 @@ router.get('/', asyncHandler(async (req, res) => {
   const where: any = {};
 
   if (query.search) {
-    where.OR = [
-      { name: { contains: query.search, mode: 'insensitive' } },
-      { description: { contains: query.search, mode: 'insensitive' } },
-      { field: { contains: query.search, mode: 'insensitive' } },
-      { country: { contains: query.search, mode: 'insensitive' } },
-      { provider: { contains: query.search, mode: 'insensitive' } }
-    ];
+    where.OR = textSearch(['name', 'description', 'field', 'country', 'provider'], query.search);
   }
 
-  if (query.field) where.field = { contains: query.field, mode: 'insensitive' };
-  if (query.country) where.country = { contains: query.country, mode: 'insensitive' };
-  if (query.degreeLevel) where.degreeLevel = { contains: query.degreeLevel, mode: 'insensitive' };
-  if (query.provider) where.provider = { contains: query.provider, mode: 'insensitive' };
+  if (query.field) where.field = insensitiveContains(query.field);
+  if (query.country) where.country = insensitiveContains(query.country);
+  if (query.degreeLevel) where.degreeLevel = insensitiveContains(query.degreeLevel);
+  if (query.provider) where.provider = insensitiveContains(query.provider);
 
   if (query.minAmount !== undefined || query.maxAmount !== undefined) {
     where.amount = {};
@@ -116,6 +112,7 @@ router.get('/', asyncHandler(async (req, res) => {
 
 router.get('/:id', asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
+  await requireScholarshipExists(id);
   const scholarship = await prisma.scholarship.findUnique({
     where: { id },
     include: {
@@ -126,7 +123,6 @@ router.get('/:id', asyncHandler(async (req, res) => {
       }
     }
   });
-  if (!scholarship) throw new HttpError(404, 'Scholarship not found');
   res.json({ scholarship });
 }));
 
@@ -151,8 +147,7 @@ router.post('/:id/save', requireAuth, asyncHandler(async (req: AuthenticatedRequ
   const userId = req.user!.id;
   const scholarshipId = Number(req.params.id);
 
-  const exists = await prisma.scholarship.findUnique({ where: { id: scholarshipId } });
-  if (!exists) throw new HttpError(404, 'Scholarship not found');
+  await requireScholarshipExists(scholarshipId);
 
   await prisma.savedScholarship.upsert({
     where: { userId_scholarshipId: { userId, scholarshipId } },
@@ -180,8 +175,7 @@ router.post('/:id/apply', requireAuth, asyncHandler(async (req: AuthenticatedReq
   const scholarshipId = Number(req.params.id);
   const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim() : null;
 
-  const scholarship = await prisma.scholarship.findUnique({ where: { id: scholarshipId } });
-  if (!scholarship) throw new HttpError(404, 'Scholarship not found');
+  await requireScholarshipExists(scholarshipId);
 
   const application = await prisma.application.upsert({
     where: {

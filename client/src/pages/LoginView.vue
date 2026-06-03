@@ -19,29 +19,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
 import AuthCard from '@/components/auth/AuthCard.vue';
 import InputField from '@/components/forms/InputField.vue';
+import { useAuthForm } from '@/composables/useAuthForm';
 
 const email = ref('demo@scholarquest.app');
 const password = ref('ScholarQuest123!');
-const loading = ref(false);
-const errorMessage = ref('');
-const router = useRouter();
-const route = useRoute();
-const auth = useAuthStore();
 
-async function submit() {
-  loading.value = true;
-  errorMessage.value = '';
-  try {
-    await auth.login({ email: email.value.trim(), password: password.value });
-    await router.push((route.query.redirect as string) || '/dashboard');
-  } catch (error: any) {
-    errorMessage.value = error?.response?.data?.message ?? 'Unable to log in right now.';
-  } finally {
-    loading.value = false;
-  }
-}
+const { loading, errorMessage, submit } = useAuthForm({
+  action: (auth) => auth.login({ email: email.value.trim(), password: password.value }),
+  fallbackError: 'Unable to log in right now.'
+});
 </script>

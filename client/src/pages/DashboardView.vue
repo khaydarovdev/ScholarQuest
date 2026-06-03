@@ -119,6 +119,8 @@ import SectionLabel from '@/components/SectionLabel.vue';
 import StatsGrid from '@/components/StatsGrid.vue';
 import ProfileItem from '@/components/ProfileItem.vue';
 import InputField from '@/components/forms/InputField.vue';
+import { formatDate } from '@/utils/format';
+import { parseInterests, formatInterests } from '@/utils/interests';
 
 useReveal();
 
@@ -145,10 +147,6 @@ const stats = computed(() => [
   { label: 'Profile', value: auth.user?.profileComplete ? 'Complete' : 'Draft', note: 'Matching readiness' }
 ]);
 
-function formatDate(value: string | Date) {
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
-}
-
 async function load() {
   const { data } = await api.get('/tracker/overview');
   saved.value = data.saved.map((item: any) => ({
@@ -165,14 +163,14 @@ async function load() {
   profileDraft.gpa = auth.user?.gpa?.toString() ?? '';
   profileDraft.major = auth.user?.major ?? '';
   profileDraft.nationality = auth.user?.nationality ?? '';
-  profileDraft.interests = Array.isArray(auth.user?.interests) ? auth.user!.interests.join(', ') : '';
+  profileDraft.interests = formatInterests(auth.user?.interests);
   profileDraft.degreeLevel = auth.user?.degreeLevel ?? '';
   profileDraft.targetCountry = auth.user?.targetCountry ?? '';
   profileDraft.bio = auth.user?.bio ?? '';
 }
 
 async function saveProfile() {
-  const interests = profileDraft.interests.split(',').map((s) => s.trim()).filter(Boolean);
+  const interests = parseInterests(profileDraft.interests);
   await auth.updateProfile({
     gpa: profileDraft.gpa ? Number(profileDraft.gpa) : null,
     major: profileDraft.major || null,

@@ -25,26 +25,15 @@ const profileSchema = z.object({
   bio: z.string().max(1000).optional().nullable()
 });
 
-function buildSessionTokens(user: { id: number; email: string; name: string }) {
-  const jti = createJti();
-  const refreshToken = signRefreshToken({ sub: String(user.id), jti });
-  const accessToken = signAccessToken({ sub: String(user.id), email: user.email, name: user.name });
-  const tokenHash = hashToken(refreshToken);
-  return { jti, refreshToken, accessToken, tokenHash };
-}
+const USER_PUBLIC_FIELDS = {
+  id: true, name: true, email: true, profileComplete: true
+} as const;
 
-async function persistRefreshToken(userId: number, refreshToken: string, jti: string) {
-  const tokenHash = hashToken(refreshToken);
-  const expiresAt = new Date(Date.now() + refreshCookieMaxAgeMs());
-  await prisma.refreshToken.create({
-    data: {
-      userId,
-      tokenHash,
-      expiresAt
-    }
-  });
-  return { tokenHash, expiresAt, jti };
-}
+const USER_PROFILE_SELECT = {
+  ...USER_PUBLIC_FIELDS,
+  gpa: true, major: true, nationality: true, interests: true,
+  degreeLevel: true, targetCountry: true, bio: true, createdAt: true
+} as const;
 
 function setRefreshCookie(res: any, token: string) {
   res.cookie('refreshToken', token, {
@@ -63,6 +52,10 @@ function clearRefreshCookie(res: any) {
     sameSite: 'lax',
     path: '/api/auth'
   });
+}
+
+function userPublicResponse(user: { id: number; name: string; email: string; profileComplete: boolean }) {
+  return { id: user.id, name: user.name, email: user.email, profileComplete: user.profileComplete };
 }
 
 async function issueAuthResponse(res: any, user: { id: number; email: string; name: string }) {
@@ -97,15 +90,7 @@ router.post('/register', asyncHandler(async (req, res) => {
   });
 
   const { accessToken } = await issueAuthResponse(res, user);
-  res.status(201).json({
-    accessToken,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profileComplete: user.profileComplete
-    }
-  });
+  res.status(201).json({ accessToken, user: userPublicResponse(user) });
 }));
 
 router.post('/login', asyncHandler(async (req, res) => {
@@ -117,15 +102,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   if (!ok) throw new HttpError(401, 'Invalid email or password');
 
   const { accessToken } = await issueAuthResponse(res, user);
-  res.json({
-    accessToken,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profileComplete: user.profileComplete
-    }
-  });
+  res.json({ accessToken, user: userPublicResponse(user) });
 }));
 
 router.post('/refresh', asyncHandler(async (req, res) => {
@@ -166,15 +143,7 @@ router.post('/refresh', asyncHandler(async (req, res) => {
 
   setRefreshCookie(res, newRefreshToken);
 
-  res.json({
-    accessToken,
-    user: {
-      id: dbToken.user.id,
-      name: dbToken.user.name,
-      email: dbToken.user.email,
-      profileComplete: dbToken.user.profileComplete
-    }
-  });
+  res.json({ accessToken, user: userPublicResponse(dbToken.user) });
 }));
 
 router.post('/logout', asyncHandler(async (req, res) => {
@@ -192,23 +161,7 @@ router.post('/logout', asyncHandler(async (req, res) => {
 
 router.get('/me', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.id;
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      gpa: true,
-      major: true,
-      nationality: true,
-      interests: true,
-      degreeLevel: true,
-      targetCountry: true,
-      bio: true,
-      profileComplete: true,
-      createdAt: true
-    }
-  });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: USER_PROFILE_SELECT });
   if (!user) throw new HttpError(404, 'User not found');
   res.json({ user });
 }));
@@ -218,24 +171,8 @@ router.put('/profile', requireAuth, asyncHandler(async (req: AuthenticatedReques
   const body = profileSchema.parse(req.body);
   const user = await prisma.user.update({
     where: { id: userId },
-    data: {
-      ...body,
-      profileComplete: true
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      gpa: true,
-      major: true,
-      nationality: true,
-      interests: true,
-      degreeLevel: true,
-      targetCountry: true,
-      bio: true,
-      profileComplete: true,
-      createdAt: true
-    }
+    data: { ...body, profileComplete: true },
+    select: USER_PROFILE_SELECT
   });
   res.json({ user });
 }));

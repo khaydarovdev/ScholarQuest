@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { asyncHandler, HttpError } from '../utils/http.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { z } from 'zod';
+import { requireScholarshipExists } from '../utils/schema.js';
 
 const router = Router();
 
@@ -63,8 +64,7 @@ router.patch('/saved/:scholarshipId', asyncHandler(async (req: AuthenticatedRequ
     note: z.string().max(1000).optional().nullable()
   }).parse(req.body);
 
-  const scholarship = await prisma.scholarship.findUnique({ where: { id: scholarshipId } });
-  if (!scholarship) throw new HttpError(404, 'Scholarship not found');
+  await requireScholarshipExists(scholarshipId);
 
   const updated = await prisma.savedScholarship.upsert({
     where: {
@@ -105,8 +105,7 @@ router.post('/applications', asyncHandler(async (req: AuthenticatedRequest, res)
     status: z.enum(['DRAFT', 'SAVED', 'APPLIED', 'INTERVIEW', 'AWARDED', 'REJECTED']).optional()
   }).parse(req.body);
 
-  const scholarship = await prisma.scholarship.findUnique({ where: { id: body.scholarshipId } });
-  if (!scholarship) throw new HttpError(404, 'Scholarship not found');
+  await requireScholarshipExists(body.scholarshipId);
 
   const application = await prisma.application.upsert({
     where: {
