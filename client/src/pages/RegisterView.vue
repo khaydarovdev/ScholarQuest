@@ -20,29 +20,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
 import AuthCard from '@/components/auth/AuthCard.vue';
 import InputField from '@/components/forms/InputField.vue';
+import { useAuthForm } from '@/composables/useAuthForm';
 
 const name = ref('Amina Patel');
 const email = ref('demo+new@scholarquest.app');
 const password = ref('ScholarQuest123!');
-const loading = ref(false);
-const errorMessage = ref('');
-const router = useRouter();
-const auth = useAuthStore();
 
-async function submit() {
-  loading.value = true;
-  errorMessage.value = '';
-  try {
-    await auth.register({ name: name.value.trim(), email: email.value.trim(), password: password.value });
-    await router.push('/dashboard');
-  } catch (error: any) {
-    errorMessage.value = error?.response?.data?.message ?? 'Unable to create the account right now.';
-  } finally {
-    loading.value = false;
-  }
-}
+const { loading, errorMessage, submit } = useAuthForm({
+  action: (auth) => auth.register({ name: name.value.trim(), email: email.value.trim(), password: password.value }),
+  redirectTo: '/dashboard',
+  fallbackError: 'Unable to create the account right now.'
+});
 </script>
